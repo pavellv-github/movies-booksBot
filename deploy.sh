@@ -25,7 +25,7 @@ fi
 
 # Копирование файлов (если не используется git pull)
 echo "📦 Copying files..."
-cp -f ../movies-booksBot/src/bot.py .
+cp -f ../movies-booksBot/bot.py .
 cp -f ../movies-booksBot/requirements.txt .
 cp -f ../movies-booksBot/docker-compose.yml .
 
