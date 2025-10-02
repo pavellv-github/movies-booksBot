@@ -5,8 +5,8 @@ set -e  # Выход при ошибке
 echo "🚀 Starting deployment..."
 
 # Переменные
-BOT_DIR="/opt/telegram-bot"
-SERVICE_NAME="telegram-bot"
+BOT_DIR="/opt/movies-booksBot"
+SERVICE_NAME="movies-booksBot"
 
 # Проверка существования директории
 if [ ! -d "$BOT_DIR" ]; then
@@ -25,9 +25,9 @@ fi
 
 # Копирование файлов (если не используется git pull)
 echo "📦 Copying files..."
-cp -f ../telegram-bot/src/bot.py .
-cp -f ../telegram-bot/requirements.txt .
-cp -f ../telegram-bot/docker-compose.yml .
+cp -f ../movies-booksBot/src/bot.py .
+cp -f ../movies-booksBot/requirements.txt .
+cp -f ../movies-booksBot/docker-compose.yml .
 
 # Установка зависимостей
 echo "📚 Installing dependencies..."
