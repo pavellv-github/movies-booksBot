@@ -1,4 +1,4 @@
-name: Deploy Telegram Bot
+name: Deploy Movie and books list Bot
 
 on:
   push:
