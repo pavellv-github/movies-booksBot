@@ -3,8 +3,6 @@ name: Deploy Telegram Bot
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
 
 jobs:
   test:
@@ -21,11 +19,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install python-telegram-bot==20.7
 
       - name: Run basic syntax check
         run: |
-          python -m py_compile src/bot.py
+          python -m py_compile bot.py
 
   deploy:
     runs-on: ubuntu-latest
@@ -45,4 +43,5 @@ jobs:
           script: |
             cd /opt/movies-booksBot
             git pull origin main
-            ./deploy.sh
+            pip3 install python-telegram-bot==20.7
+            sudo systemctl restart telegram-bot
