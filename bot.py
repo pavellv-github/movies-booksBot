@@ -184,13 +184,28 @@ async def mark_movie(update: Update, context: CallbackContext) -> int:
         )
         return MARKING
     
-    # Показываем список фильмов для выбора
+    # Показываем список фильмов для выбора (с разбивкой на части если нужно)
     movies_list = "\n".join([f"• {movie}" for movie in movies])
-    await update.message.reply_text(
-        f"🎬 Выберите фильм для отметки:\n\n{movies_list}\n\n"
-        f"Введите название фильма:",
-        reply_markup=ReplyKeyboardMarkup([[KeyboardButton("🔙 Отмена")]], resize_keyboard=True)
-    )
+    
+    # Проверяем длину сообщения
+    if len(movies_list) > 4000:
+        # Разбиваем на части
+        await update.message.reply_text(
+            "🎬 Список фильмов очень большой. Показываю первые 50 фильмов:"
+        )
+        short_list = "\n".join([f"• {movie}" for movie in movies[:50]])
+        await update.message.reply_text(
+            f"{short_list}\n\n... и еще {len(movies) - 50} фильмов\n\n"
+            f"Введите название фильма:",
+            reply_markup=ReplyKeyboardMarkup([[KeyboardButton("🔙 Отмена")]], resize_keyboard=True)
+        )
+    else:
+        await update.message.reply_text(
+            f"🎬 Выберите фильм для отметки:\n\n{movies_list}\n\n"
+            f"Введите название фильма:",
+            reply_markup=ReplyKeyboardMarkup([[KeyboardButton("🔙 Отмена")]], resize_keyboard=True)
+        )
+    
     context.user_data['marking_movie'] = True
     return MARKING_ITEM
 
@@ -206,13 +221,28 @@ async def mark_book(update: Update, context: CallbackContext) -> int:
         )
         return MARKING
     
-    # Показываем список книг для выбора
+    # Показываем список книг для выбора (с разбивкой на части если нужно)
     books_list = "\n".join([f"• {book}" for book in books])
-    await update.message.reply_text(
-        f"📚 Выберите книгу для отметки:\n\n{books_list}\n\n"
-        f"Введите название книги:",
-        reply_markup=ReplyKeyboardMarkup([[KeyboardButton("🔙 Отмена")]], resize_keyboard=True)
-    )
+    
+    # Проверяем длину сообщения
+    if len(books_list) > 4000:
+        # Разбиваем на части
+        await update.message.reply_text(
+            "📚 Список книг очень большой. Показываю первые 50 книг:"
+        )
+        short_list = "\n".join([f"• {book}" for book in books[:50]])
+        await update.message.reply_text(
+            f"{short_list}\n\n... и еще {len(books) - 50} книг\n\n"
+            f"Введите название книги:",
+            reply_markup=ReplyKeyboardMarkup([[KeyboardButton("🔙 Отмена")]], resize_keyboard=True)
+        )
+    else:
+        await update.message.reply_text(
+            f"📚 Выберите книгу для отметки:\n\n{books_list}\n\n"
+            f"Введите название книги:",
+            reply_markup=ReplyKeyboardMarkup([[KeyboardButton("🔙 Отмена")]], resize_keyboard=True)
+        )
+    
     context.user_data['marking_book'] = True
     return MARKING_ITEM
 
