@@ -12,7 +12,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Состояния для ConversationHandler
-CHOOSING, EDITING, ADDING_SINGLE, ADDING_MULTIPLE, MARKING_ITEM = range(5)
+MAIN_MENU, EDITING, MARKING, ADDING_SINGLE, ADDING_MULTIPLE, MARKING_ITEM = range(6)
 
 # Хранилище данных
 user_data = {}
@@ -42,7 +42,7 @@ def get_marking_keyboard():
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-async def start(update: Update, context: CallbackContext) -> None:
+async def start(update: Update, context: CallbackContext) -> int:
     """Обработчик команды /start"""
     user_id = update.message.from_user.id
     
@@ -71,6 +71,7 @@ async def start(update: Update, context: CallbackContext) -> None:
         "✏️ Редактировать списки - добавить новые фильмы или книги",
         reply_markup=get_main_keyboard()
     )
+    return MAIN_MENU
 
 def get_user_stats(user_id):
     """Получить статистику пользователя"""
@@ -84,7 +85,7 @@ def get_user_stats(user_id):
         'books_read': len(user_data[user_id]['read_books'])
     }
 
-async def show_random_movie(update: Update, context: CallbackContext) -> None:
+async def show_random_movie(update: Update, context: CallbackContext) -> int:
     """Показать случайный фильм"""
     user_id = update.message.from_user.id
     movies = user_data[user_id]['movies']
@@ -97,7 +98,7 @@ async def show_random_movie(update: Update, context: CallbackContext) -> None:
             f"🎬 Просмотрено: {stats['movies_watched']}",
             reply_markup=get_main_keyboard()
         )
-        return
+        return MAIN_MENU
     
     random_movie = random.choice(movies)
     stats = get_user_stats(user_id)
@@ -108,8 +109,9 @@ async def show_random_movie(update: Update, context: CallbackContext) -> None:
         f"🎬 Просмотрено: {stats['movies_watched']}",
         reply_markup=get_main_keyboard()
     )
+    return MAIN_MENU
 
-async def show_random_book(update: Update, context: CallbackContext) -> None:
+async def show_random_book(update: Update, context: CallbackContext) -> int:
     """Показать случайную книгу"""
     user_id = update.message.from_user.id
     books = user_data[user_id]['books']
@@ -122,7 +124,7 @@ async def show_random_book(update: Update, context: CallbackContext) -> None:
             f"📚 Прочитано: {stats['books_read']}",
             reply_markup=get_main_keyboard()
         )
-        return
+        return MAIN_MENU
     
     random_book = random.choice(books)
     stats = get_user_stats(user_id)
@@ -133,6 +135,7 @@ async def show_random_book(update: Update, context: CallbackContext) -> None:
         f"📚 Прочитано: {stats['books_read']}",
         reply_markup=get_main_keyboard()
     )
+    return MAIN_MENU
 
 async def start_marking(update: Update, context: CallbackContext) -> int:
     """Начать процесс отметки прочитанного/просмотренного"""
@@ -149,9 +152,9 @@ async def start_marking(update: Update, context: CallbackContext) -> int:
         "Выберите что хотите отметить:",
         reply_markup=get_marking_keyboard()
     )
-    return CHOOSING
+    return MARKING
 
-async def show_stats(update: Update, context: CallbackContext) -> None:
+async def show_stats(update: Update, context: CallbackContext) -> int:
     """Показать статистику"""
     user_id = update.message.from_user.id
     stats = get_user_stats(user_id)
@@ -167,6 +170,7 @@ async def show_stats(update: Update, context: CallbackContext) -> None:
         f"📈 Всего завершено: {stats['movies_watched'] + stats['books_read']}",
         reply_markup=get_marking_keyboard()
     )
+    return MARKING
 
 async def mark_movie(update: Update, context: CallbackContext) -> int:
     """Отметить фильм как просмотренный"""
@@ -178,7 +182,7 @@ async def mark_movie(update: Update, context: CallbackContext) -> int:
             "📝 Список фильмов пуст. Нечего отмечать!",
             reply_markup=get_marking_keyboard()
         )
-        return CHOOSING
+        return MARKING
     
     # Показываем список фильмов для выбора
     movies_list = "\n".join([f"• {movie}" for movie in movies])
@@ -200,7 +204,7 @@ async def mark_book(update: Update, context: CallbackContext) -> int:
             "📝 Список книг пуст. Нечего отмечать!",
             reply_markup=get_marking_keyboard()
         )
-        return CHOOSING
+        return MARKING
     
     # Показываем список книг для выбора
     books_list = "\n".join([f"• {book}" for book in books])
@@ -236,6 +240,7 @@ async def process_marking(update: Update, context: CallbackContext) -> int:
                 reply_markup=get_marking_keyboard()
             )
         del context.user_data['marking_movie']
+        return MARKING
         
     elif 'marking_book' in context.user_data:
         # Отмечаем книгу
@@ -256,8 +261,9 @@ async def process_marking(update: Update, context: CallbackContext) -> int:
                 reply_markup=get_marking_keyboard()
             )
         del context.user_data['marking_book']
+        return MARKING
     
-    return CHOOSING
+    return MARKING
 
 async def start_editing(update: Update, context: CallbackContext) -> int:
     """Начать редактирование списков"""
@@ -274,7 +280,7 @@ async def start_editing(update: Update, context: CallbackContext) -> int:
         "Выберите действие:",
         reply_markup=get_edit_keyboard()
     )
-    return CHOOSING
+    return EDITING
 
 async def add_single_movie(update: Update, context: CallbackContext) -> int:
     """Добавить один фильм"""
@@ -326,6 +332,7 @@ async def process_single_addition(update: Update, context: CallbackContext) -> i
             reply_markup=get_edit_keyboard()
         )
         del context.user_data['adding_movie']
+        return EDITING
     elif 'adding_book' in context.user_data:
         user_data[user_id]['books'].append(text)
         stats = get_user_stats(user_id)
@@ -335,8 +342,9 @@ async def process_single_addition(update: Update, context: CallbackContext) -> i
             reply_markup=get_edit_keyboard()
         )
         del context.user_data['adding_book']
+        return EDITING
     
-    return CHOOSING
+    return EDITING
 
 async def process_multiple_addition(update: Update, context: CallbackContext) -> int:
     """Обработать добавление нескольких элементов"""
@@ -354,6 +362,7 @@ async def process_multiple_addition(update: Update, context: CallbackContext) ->
             reply_markup=get_edit_keyboard()
         )
         del context.user_data['adding_movies']
+        return EDITING
     elif 'adding_books' in context.user_data:
         user_data[user_id]['books'].extend(items)
         stats = get_user_stats(user_id)
@@ -363,8 +372,9 @@ async def process_multiple_addition(update: Update, context: CallbackContext) ->
             reply_markup=get_edit_keyboard()
         )
         del context.user_data['adding_books']
+        return EDITING
     
-    return CHOOSING
+    return EDITING
 
 async def cancel(update: Update, context: CallbackContext) -> int:
     """Отмена текущего действия"""
@@ -373,11 +383,18 @@ async def cancel(update: Update, context: CallbackContext) -> int:
         if key in context.user_data:
             del context.user_data[key]
     
-    await update.message.reply_text(
-        "Действие отменено",
-        reply_markup=get_marking_keyboard()
-    )
-    return CHOOSING
+    # Определяем откуда пришли
+    if 'came_from_marking' in context.user_data:
+        await update.message.reply_text("Действие отменено", reply_markup=get_marking_keyboard())
+        del context.user_data['came_from_marking']
+        return MARKING
+    elif 'came_from_editing' in context.user_data:
+        await update.message.reply_text("Действие отменено", reply_markup=get_edit_keyboard())
+        del context.user_data['came_from_editing']
+        return EDITING
+    else:
+        await update.message.reply_text("Действие отменено", reply_markup=get_main_keyboard())
+        return MAIN_MENU
 
 async def back_to_main(update: Update, context: CallbackContext) -> int:
     """Вернуться в главное меню"""
@@ -386,11 +403,8 @@ async def back_to_main(update: Update, context: CallbackContext) -> int:
         if key in context.user_data:
             del context.user_data[key]
     
-    await update.message.reply_text(
-        "Главное меню:",
-        reply_markup=get_main_keyboard()
-    )
-    return ConversationHandler.END
+    await update.message.reply_text("Главное меню:", reply_markup=get_main_keyboard())
+    return MAIN_MENU
 
 def main() -> None:
     """Запуск бота"""
@@ -400,42 +414,27 @@ def main() -> None:
     
     application = Application.builder().token(TOKEN).build()
     
-    # Обработчики команд
-    application.add_handler(CommandHandler("start", start))
-    
-    # Обработчики кнопок главного меню
-    application.add_handler(MessageHandler(filters.Text("🎬 Фильмы"), show_random_movie))
-    application.add_handler(MessageHandler(filters.Text("📚 Книги"), show_random_book))
-    application.add_handler(MessageHandler(filters.Text("✅ Отметить прочитанное"), start_marking))
-    application.add_handler(MessageHandler(filters.Text("📊 Статистика"), show_stats))
-    
-    # ConversationHandler для отметки прочитанного
-    marking_handler = ConversationHandler(
-        entry_points=[MessageHandler(filters.Text("✅ Отметить прочитанное"), start_marking)],
+    # Основной ConversationHandler
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("start", start)],
         states={
-            CHOOSING: [
-                MessageHandler(filters.Text("🎬 Отметить фильм"), mark_movie),
-                MessageHandler(filters.Text("📚 Отметить книгу"), mark_book),
-                MessageHandler(filters.Text("📊 Статистика"), show_stats),
-                MessageHandler(filters.Text("🔙 Назад"), back_to_main),
+            MAIN_MENU: [
+                MessageHandler(filters.Text("🎬 Фильмы"), show_random_movie),
+                MessageHandler(filters.Text("📚 Книги"), show_random_book),
+                MessageHandler(filters.Text("✅ Отметить прочитанное"), start_marking),
+                MessageHandler(filters.Text("✏️ Редактировать списки"), start_editing),
             ],
-            MARKING_ITEM: [
-                MessageHandler(filters.Text("🔙 Отмена"), cancel),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, process_marking),
-            ],
-        },
-        fallbacks=[MessageHandler(filters.Text("🔙 Назад"), back_to_main)],
-    )
-    
-    # ConversationHandler для редактирования списков
-    editing_handler = ConversationHandler(
-        entry_points=[MessageHandler(filters.Text("✏️ Редактировать списки"), start_editing)],
-        states={
-            CHOOSING: [
+            EDITING: [
                 MessageHandler(filters.Text("📝 Добавить один фильм"), add_single_movie),
                 MessageHandler(filters.Text("📝 Добавить одну книгу"), add_single_book),
                 MessageHandler(filters.Text("📋 Загрузить список фильмов"), add_multiple_movies),
                 MessageHandler(filters.Text("📋 Загрузить список книг"), add_multiple_books),
+                MessageHandler(filters.Text("🔙 Назад"), back_to_main),
+            ],
+            MARKING: [
+                MessageHandler(filters.Text("🎬 Отметить фильм"), mark_movie),
+                MessageHandler(filters.Text("📚 Отметить книгу"), mark_book),
+                MessageHandler(filters.Text("📊 Статистика"), show_stats),
                 MessageHandler(filters.Text("🔙 Назад"), back_to_main),
             ],
             ADDING_SINGLE: [
@@ -446,12 +445,15 @@ def main() -> None:
                 MessageHandler(filters.Text("🔙 Отмена"), cancel),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, process_multiple_addition),
             ],
+            MARKING_ITEM: [
+                MessageHandler(filters.Text("🔙 Отмена"), cancel),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, process_marking),
+            ],
         },
         fallbacks=[MessageHandler(filters.Text("🔙 Назад"), back_to_main)],
     )
     
-    application.add_handler(marking_handler)
-    application.add_handler(editing_handler)
+    application.add_handler(conv_handler)
     
     print("Бот запущен...")
     application.run_polling()
